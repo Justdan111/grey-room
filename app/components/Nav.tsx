@@ -80,7 +80,7 @@ function SidePanel({
   cta: string;
 }) {
   return (
-    <div className="w-[220px] shrink-0 rounded-lg bg-white/[0.04] p-3">
+    <div className="w-[300px] shrink-0 rounded-lg bg-white/[0.04] p-3">
       <p className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">
         {label}
       </p>
@@ -92,7 +92,7 @@ function SidePanel({
           loop
           playsInline
           preload="metadata"
-          className="h-24 w-full object-cover"
+          className="h-44 w-full object-cover"
         />
       </div>
       <a
@@ -184,7 +184,7 @@ export default function Nav() {
             : "pointer-events-none -translate-y-2 opacity-0"
         }`}
       >
-        <div className="w-[840px] rounded-2xl bg-neutral-900/95 p-8 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
+        <div className="w-[920px] rounded-2xl bg-neutral-900/95 p-8 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
           <p className="text-xs font-medium tracking-wide text-white/50">
             Grey Room services
           </p>
@@ -215,7 +215,7 @@ export default function Nav() {
             : "pointer-events-none -translate-y-2 opacity-0"
         }`}
       >
-        <div className="w-[620px] rounded-2xl bg-neutral-900/95 p-8 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
+        <div className="w-175 rounded-2xl bg-neutral-900/95 p-8 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
           <p className="text-xs font-medium tracking-wide text-white/50">
             About Grey Room
           </p>

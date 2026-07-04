@@ -126,8 +126,8 @@ export default function Hero() {
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-14 px-6 pt-24 pb-8">
-        <div className="relative flex w-full items-center justify-center">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-between px-6 pt-30 pb-8">
+        <div className="relative mt-[10vh] flex w-full items-center justify-center">
           <div ref={quoteRef}>
             <blockquote className="max-w-3xl text-center">
               <p className="font-serif text-3xl leading-[1.15] tracking-tight sm:text-4xl md:text-[42px]">
@@ -163,10 +163,10 @@ export default function Hero() {
             {[...capabilities, ...capabilities].map((cap, i) => (
               <span
                 key={i}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-300 ${
+                className={`rounded-2xl border px-3 py-1 text-xs font-medium transition-colors duration-300 ${
                   isDark
                     ? "border-white/35 bg-black/15 text-white/90 backdrop-blur-sm"
-                    : "border-black/20 text-black/70"
+                    : "border-black text-black/70"
                 }`}
               >
                 {cap}
