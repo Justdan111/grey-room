@@ -72,11 +72,11 @@ function MenuItem({ title, desc }: MenuItemData) {
 
 function SidePanel({
   label,
-  image,
+  video,
   cta,
 }: {
   label: string;
-  image: string;
+  video: string;
   cta: string;
 }) {
   return (
@@ -85,12 +85,14 @@ function SidePanel({
         {label}
       </p>
       <div className="mt-2 overflow-hidden rounded-md">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={image}
-          alt=""
+        <video
+          src={video}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
           className="h-24 w-full object-cover"
-          loading="lazy"
         />
       </div>
       <a
@@ -197,7 +199,7 @@ export default function Nav() {
             </div>
             <SidePanel
               label="What we do"
-              image="https://picsum.photos/seed/greyroom-services/320/160"
+              video="/cases/service.mp4"
               cta="Explore every service"
             />
           </div>
@@ -225,7 +227,7 @@ export default function Nav() {
             </div>
             <SidePanel
               label="Working here"
-              image="https://picsum.photos/seed/greyroom-team/320/160"
+              video="/cases/about.mp4"
               cta="Come build with us"
             />
           </div>

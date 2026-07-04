@@ -40,7 +40,6 @@ export default function Hero() {
   const bgVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const tileRefs = useRef<(HTMLDivElement | null)[]>([]);
   const quoteRef = useRef<HTMLDivElement | null>(null);
-  const caseNameRef = useRef<HTMLDivElement | null>(null);
   const marqueeMaskLeftRef = useRef<HTMLDivElement | null>(null);
   const marqueeMaskRightRef = useRef<HTMLDivElement | null>(null);
   const marqueeTrackRef = useRef<HTMLDivElement | null>(null);
@@ -79,14 +78,6 @@ export default function Hero() {
       gsap.to(quoteRef.current, {
         opacity: isDark ? 0 : 1,
         y: isDark ? -8 : 0,
-        duration: 0.4,
-        ease: "power2.out",
-      });
-    }
-    if (caseNameRef.current) {
-      gsap.to(caseNameRef.current, {
-        opacity: isDark ? 1 : 0,
-        y: isDark ? 0 : 8,
         duration: 0.4,
         ease: "power2.out",
       });
@@ -148,17 +139,6 @@ export default function Hero() {
                 &mdash; Modern Retail
               </footer>
             </blockquote>
-          </div>
-
-          <div
-            ref={caseNameRef}
-            className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0"
-          >
-            {hoveredIndex !== null && (
-              <span className="font-serif text-6xl tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.35)] sm:text-7xl md:text-8xl">
-                {cases[hoveredIndex].client}
-              </span>
-            )}
           </div>
         </div>
 
@@ -225,9 +205,9 @@ export default function Hero() {
                 hoveredIndex === i ? "border-white/80" : "border-transparent"
               }`}
             />
-            <div className="absolute inset-x-3 bottom-3 text-[10px] font-medium tracking-[0.28em] text-white uppercase">
+            {/* <div className="absolute inset-x-3 bottom-3 text-[10px] font-medium tracking-[0.28em] text-white uppercase">
               {c.client}
-            </div>
+            </div> */}
           </div>
         ))}
       </div>
