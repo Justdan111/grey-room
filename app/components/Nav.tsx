@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useHeroTheme } from "./HeroTheme";
+import MenuOverlay from "./MenuOverlay";
 
 type Menu = "services" | "about" | null;
 
@@ -112,8 +114,22 @@ function SidePanel({
 
 export default function Nav() {
   const [openMenu, setOpenMenu] = useState<Menu>(null);
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { bgIsDark } = useHeroTheme();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 120);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const showMenuButton = scrolled || overlayOpen;
 
   const open = (menu: Exclude<Menu, null>) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -140,7 +156,12 @@ export default function Nav() {
           <sup className="relative top-[-0.7em] ml-0.5 text-[0.55em]">°</sup>
         </Link>
 
-        <nav className="hidden items-center gap-10 md:flex">
+        <nav
+          className={`hidden items-center gap-10 transition-opacity duration-300 md:flex ${
+            showMenuButton ? "pointer-events-none opacity-0" : "opacity-100"
+          }`}
+          aria-hidden={showMenuButton}
+        >
           <button
             type="button"
             onMouseEnter={() => open("services")}
@@ -167,6 +188,19 @@ export default function Nav() {
           </a>
         </nav>
 
+        <button
+          type="button"
+          onClick={() => setOverlayOpen((v) => !v)}
+          aria-label={overlayOpen ? "Close menu" : "Open menu"}
+          className={`absolute left-1/2 hidden h-9 -translate-x-1/2 items-center justify-center rounded-md bg-[#0a0a0a] px-4 text-xs font-medium tracking-wide text-white transition-all duration-300 md:flex ${
+            showMenuButton
+              ? "scale-100 opacity-100"
+              : "pointer-events-none scale-90 opacity-0"
+          }`}
+        >
+          {overlayOpen ? "close" : "menu"}
+        </button>
+
         <a
           href="#contact"
           className={`rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide transition-colors ${ctaCls}`}
@@ -184,7 +218,7 @@ export default function Nav() {
             : "pointer-events-none -translate-y-2 opacity-0"
         }`}
       >
-        <div className="w-[920px] rounded-2xl bg-neutral-900/95 p-8 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
+        <div className="w-230 rounded-2xl bg-neutral-900/95 p-8 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
           <p className="text-xs font-medium tracking-wide text-white/50">
             Grey Room services
           </p>
@@ -233,6 +267,12 @@ export default function Nav() {
           </div>
         </div>
       </div>
+
+      <MenuOverlay
+        open={overlayOpen}
+        onClose={() => setOverlayOpen(false)}
+        activeHref={pathname}
+      />
     </>
   );
 }
