@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -20,11 +20,13 @@ const pages: PageTile[] = [
   { label: "Observatory", href: "/observatory", image: "/cases/atlas.jpg" },
 ];
 
-const TILE_WIDTH = 520;
-const TILE_HEIGHT = 340;
-const ARC_RADIUS = 1100;
-const PERSPECTIVE = 1400;
-const DRAG_SENSITIVITY = 1;
+const TILE_WIDTH = 900;
+const TILE_HEIGHT = 520;
+const ARC_RADIUS = 900;
+const PERSPECTIVE = 2000;
+const DRAG_SENSITIVITY = 1.6;
+const WHEEL_SENSITIVITY = 2;
+const VELOCITY_DECAY = 0.96;
 const CLICK_THRESHOLD = 6;
 
 const angleStepDeg =
@@ -79,17 +81,27 @@ export default function MenuOverlay({
   const tileRefs = useRef<(HTMLDivElement | null)[]>([]);
   const cursorRef = useRef(0);
   const velocityRef = useRef(0);
+  const targetCursorRef = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
   const dragDistanceRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const activeTileRef = useRef(0);
+  const [activeTileIndex, setActiveTileIndex] = useState(0);
 
   useEffect(() => {
     if (!open) return;
-    cursorRef.current = 0;
+    const startIdx = Math.max(
+      0,
+      pages.findIndex((p) => p.href === activeHref)
+    );
+    cursorRef.current = startIdx;
     velocityRef.current = 0;
-  }, [open]);
+    targetCursorRef.current = null;
+    activeTileRef.current = startIdx;
+    queueMicrotask(() => setActiveTileIndex(startIdx));
+  }, [open, activeHref]);
 
   useEffect(() => {
     if (!open) return;
@@ -98,14 +110,20 @@ export default function MenuOverlay({
       router.prefetch(p.href);
     });
 
+    const N = pages.length;
     const apply = () => {
       tileRefs.current.forEach((el, i) => {
         if (!el) return;
-        const pose = computePose(i, cursorRef.current, pages.length);
+        const pose = computePose(i, cursorRef.current, N);
         el.style.transform = `translate3d(${pose.x}px, 0, ${pose.depth}px) rotateY(${pose.angleDeg}deg)`;
         el.style.opacity = String(pose.opacity);
         el.style.zIndex = String(pose.zIndex);
       });
+      const idx = ((Math.round(cursorRef.current) % N) + N) % N;
+      if (idx !== activeTileRef.current) {
+        activeTileRef.current = idx;
+        setActiveTileIndex(idx);
+      }
     };
     apply();
 
@@ -113,10 +131,22 @@ export default function MenuOverlay({
     const loop = (now: number) => {
       const dt = Math.min(3, (now - last) / 16.67);
       last = now;
-      if (!isDraggingRef.current && Math.abs(velocityRef.current) > 0.0005) {
-        cursorRef.current += velocityRef.current * dt;
-        velocityRef.current *= 0.92;
-        apply();
+      if (!isDraggingRef.current) {
+        if (targetCursorRef.current !== null) {
+          const target = targetCursorRef.current;
+          const diff = target - cursorRef.current;
+          if (Math.abs(diff) < 0.005) {
+            cursorRef.current = target;
+            targetCursorRef.current = null;
+          } else {
+            cursorRef.current += diff * 0.15 * dt;
+          }
+          apply();
+        } else if (Math.abs(velocityRef.current) > 0.0003) {
+          cursorRef.current += velocityRef.current * dt;
+          velocityRef.current *= VELOCITY_DECAY;
+          apply();
+        }
       }
       rafRef.current = requestAnimationFrame(loop);
     };
@@ -137,6 +167,47 @@ export default function MenuOverlay({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta =
+        Math.abs(e.deltaX) >= Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      const cursorDelta = (delta * WHEEL_SENSITIVITY) / TILE_WIDTH;
+      cursorRef.current += cursorDelta;
+      velocityRef.current = cursorDelta;
+      targetCursorRef.current = null;
+      const N = pages.length;
+      tileRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const pose = computePose(i, cursorRef.current, N);
+        el.style.transform = `translate3d(${pose.x}px, 0, ${pose.depth}px) rotateY(${pose.angleDeg}deg)`;
+        el.style.opacity = String(pose.opacity);
+        el.style.zIndex = String(pose.zIndex);
+      });
+      const idx = ((Math.round(cursorRef.current) % N) + N) % N;
+      if (idx !== activeTileRef.current) {
+        activeTileRef.current = idx;
+        setActiveTileIndex(idx);
+      }
+    };
+
+    stage.addEventListener("wheel", onWheel, { passive: false });
+    return () => stage.removeEventListener("wheel", onWheel);
+  }, [open]);
+
+  const syncActiveTile = () => {
+    const N = pages.length;
+    const idx = ((Math.round(cursorRef.current) % N) + N) % N;
+    if (idx !== activeTileRef.current) {
+      activeTileRef.current = idx;
+      setActiveTileIndex(idx);
+    }
+  };
+
   const applyImmediate = () => {
     tileRefs.current.forEach((el, i) => {
       if (!el) return;
@@ -145,6 +216,7 @@ export default function MenuOverlay({
       el.style.opacity = String(pose.opacity);
       el.style.zIndex = String(pose.zIndex);
     });
+    syncActiveTile();
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -152,7 +224,18 @@ export default function MenuOverlay({
     lastXRef.current = e.clientX;
     dragDistanceRef.current = 0;
     velocityRef.current = 0;
+    targetCursorRef.current = null;
     stageRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const setTarget = (index: number) => {
+    const N = pages.length;
+    const mod = ((cursorRef.current % N) + N) % N;
+    let diff = index - mod;
+    if (diff > N / 2) diff -= N;
+    if (diff < -N / 2) diff += N;
+    targetCursorRef.current = cursorRef.current + diff;
+    velocityRef.current = 0;
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!isDraggingRef.current) return;
@@ -223,7 +306,7 @@ export default function MenuOverlay({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className="absolute inset-x-0 top-[18vh] flex touch-none justify-center select-none"
+        className="absolute inset-x-0 top-20 flex touch-none justify-center select-none"
         style={{ perspective: `${PERSPECTIVE}px` }}
       >
         <div
@@ -241,7 +324,7 @@ export default function MenuOverlay({
                 tileRefs.current[i] = el;
               }}
               onClick={() => handleTileClick(p.href)}
-              className="group absolute inset-0 overflow-hidden bg-black"
+              className="group absolute inset-0 overflow-hidden bg-black shadow-[0_30px_80px_-30px_rgba(0,0,0,0.5),0_10px_30px_-10px_rgba(0,0,0,0.35)]"
               style={{
                 backfaceVisibility: "hidden",
                 willChange: "transform, opacity",
@@ -277,35 +360,42 @@ export default function MenuOverlay({
         </div>
       </div>
 
-      <footer className="absolute inset-x-0 bottom-0 px-10 pb-8">
-        <nav className="flex flex-wrap items-start justify-center gap-x-14 gap-y-4 text-sm">
-          {pages.map((p) => {
-            const isActive = p.href === activeHref;
-            return (
-              <Link
-                key={p.href}
-                href={p.href}
-                onClick={onClose}
-                className="relative text-black/80 transition-colors hover:text-black"
-              >
-                {p.label}
-                {isActive && (
-                  <span className="absolute top-full left-1/2 mt-1 block h-1 w-1 -translate-x-1/2 rounded-full bg-black" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="mt-10 flex items-center justify-between text-xs text-black/50">
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-black">
+      <footer className="absolute inset-x-0 bottom-0 px-10 pb-10 sm:pr-20 sm:pb-14">
+        <div className="ml-auto w-full max-w-xl">
+          <nav className="grid grid-cols-4 gap-x-8 gap-y-3 text-[17px]">
+            {pages.map((p, i) => {
+              const isActive = i === activeTileIndex;
+              return (
+                <Link
+                  key={p.href}
+                  href={p.href}
+                  onClick={onClose}
+                  onMouseEnter={() => setTarget(i)}
+                  className={`relative w-fit transition-colors ${
+                    isActive
+                      ? "font-medium text-black"
+                      : "text-black/55 hover:text-black"
+                  }`}
+                >
+                  {p.label}
+                  {isActive && (
+                    <span className="absolute top-full left-1/2 mt-1.5 block h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-black" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="mt-20 grid grid-cols-4 gap-x-8 text-[13px] text-black/50">
+            <a href="#" className="w-fit hover:text-black">
               Terms of service
             </a>
-            <a href="#" className="hover:text-black">
+            <a href="#" className="col-start-3 w-fit hover:text-black">
               Privacy Policy
             </a>
+            <span className="col-start-4 whitespace-nowrap">
+              &copy; Grey Room, Inc &mdash; 2026
+            </span>
           </div>
-          <div>Copyright Grey Room, Inc &mdash; 2026</div>
         </div>
       </footer>
     </div>
