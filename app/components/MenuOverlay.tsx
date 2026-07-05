@@ -11,13 +11,13 @@ type PageTile = {
 };
 
 const pages: PageTile[] = [
-  { label: "Home", href: "/", image: "/cases/meridian.jpg" },
-  { label: "Services", href: "/services", image: "/cases/service.jpg" },
-  { label: "Case Studies", href: "/case-studies", image: "/cases/halcyon.jpg" },
+  { label: "Home", href: "/", image: "/cases/home.jpg" },
+  { label: "Services", href: "/services", image: "/cases/services.jpg" },
+  { label: "Case Studies", href: "/case-studies", image: "/cases/casestudy.jpg" },
   { label: "Process", href: "/process", image: "/cases/solene.jpg" },
   { label: "About", href: "/about", image: "/cases/about.jpg" },
   { label: "Careers", href: "/careers", image: "/cases/kindred.jpg" },
-  { label: "Observatory", href: "/observatory", image: "/cases/atlas.jpg" },
+  { label: "Observatory", href: "/observatory", image: "/cases/observatory.jpg" },
 ];
 
 const TILE_WIDTH = 900;
