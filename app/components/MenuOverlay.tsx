@@ -20,43 +20,50 @@ const pages: PageTile[] = [
   { label: "Observatory", href: "/observatory", image: "/cases/atlas.jpg" },
 ];
 
-const TILE_WIDTH = 480;
-const TILE_HEIGHT = 320;
-const TILE_SPACING = 400;
-const ANGLE_PER = 12;
-const MAX_ANGLE = 38;
-const DIP_PER = 14;
-const MAX_DIP = 50;
-const SCALE_PER = 0.02;
-const MAX_SCALE_DROP = 0.08;
-const OPACITY_FADE_START = 2.8;
-const OPACITY_FADE_END = 3.4;
+const TILE_WIDTH = 520;
+const TILE_HEIGHT = 340;
+const ARC_RADIUS = 1100;
+const PERSPECTIVE = 1400;
 const DRAG_SENSITIVITY = 1;
 const CLICK_THRESHOLD = 6;
 
+const angleStepDeg =
+  (2 * Math.atan(TILE_WIDTH / (2 * ARC_RADIUS)) * 180) / Math.PI;
+const angleStepRad = (angleStepDeg * Math.PI) / 180;
+
 type TilePose = {
   x: number;
-  y: number;
-  angle: number;
-  scale: number;
+  depth: number;
+  angleDeg: number;
   opacity: number;
-  z: number;
+  zIndex: number;
 };
 
 function computePose(index: number, cursor: number, n: number): TilePose {
   let d = index - cursor;
   d = ((d + n / 2) % n + n) % n - n / 2;
-  const x = d * TILE_SPACING;
-  const angle = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, d * ANGLE_PER));
-  const y = Math.min(MAX_DIP, Math.abs(d) * DIP_PER);
-  const scale = 1 - Math.min(MAX_SCALE_DROP, Math.abs(d) * SCALE_PER);
-  const t = Math.max(
-    0,
-    Math.min(1, (Math.abs(d) - OPACITY_FADE_START) / (OPACITY_FADE_END - OPACITY_FADE_START))
-  );
-  const opacity = 1 - t;
-  const z = Math.round(1000 - Math.abs(d) * 10);
-  return { x, y, angle, scale, opacity, z };
+
+  let x: number;
+  let depth: number;
+  let angleDeg: number;
+  let opacity: number;
+
+  if (d <= 0) {
+    const alpha = d * angleStepRad;
+    x = ARC_RADIUS * Math.sin(alpha);
+    depth = -ARC_RADIUS * Math.cos(alpha);
+    angleDeg = -d * angleStepDeg;
+    const absAlphaDeg = Math.abs(alpha) * (180 / Math.PI);
+    opacity = absAlphaDeg > 80 ? Math.max(0, 1 - (absAlphaDeg - 80) / 30) : 1;
+  } else {
+    x = d * TILE_WIDTH;
+    depth = -ARC_RADIUS;
+    angleDeg = 0;
+    opacity = d > 2.5 ? Math.max(0, 1 - (d - 2.5) / 1) : 1;
+  }
+
+  const zIndex = Math.round(1000 - Math.abs(d) * 5);
+  return { x, depth, angleDeg, opacity, zIndex };
 }
 
 export default function MenuOverlay({
@@ -95,9 +102,9 @@ export default function MenuOverlay({
       tileRefs.current.forEach((el, i) => {
         if (!el) return;
         const pose = computePose(i, cursorRef.current, pages.length);
-        el.style.transform = `translate3d(${pose.x}px, ${pose.y}px, 0) rotateY(${pose.angle}deg) scale(${pose.scale})`;
+        el.style.transform = `translate3d(${pose.x}px, 0, ${pose.depth}px) rotateY(${pose.angleDeg}deg)`;
         el.style.opacity = String(pose.opacity);
-        el.style.zIndex = String(pose.z);
+        el.style.zIndex = String(pose.zIndex);
       });
     };
     apply();
@@ -134,9 +141,9 @@ export default function MenuOverlay({
     tileRefs.current.forEach((el, i) => {
       if (!el) return;
       const pose = computePose(i, cursorRef.current, pages.length);
-      el.style.transform = `translate3d(${pose.x}px, ${pose.y}px, 0) rotateY(${pose.angle}deg) scale(${pose.scale})`;
+      el.style.transform = `translate3d(${pose.x}px, 0, ${pose.depth}px) rotateY(${pose.angleDeg}deg)`;
       el.style.opacity = String(pose.opacity);
-      el.style.zIndex = String(pose.z);
+      el.style.zIndex = String(pose.zIndex);
     });
   };
 
@@ -152,7 +159,7 @@ export default function MenuOverlay({
     const dx = e.clientX - lastXRef.current;
     lastXRef.current = e.clientX;
     dragDistanceRef.current += Math.abs(dx);
-    const cursorDelta = (-dx * DRAG_SENSITIVITY) / TILE_SPACING;
+    const cursorDelta = (-dx * DRAG_SENSITIVITY) / TILE_WIDTH;
     cursorRef.current += cursorDelta;
     velocityRef.current = cursorDelta;
     applyImmediate();
@@ -172,7 +179,7 @@ export default function MenuOverlay({
 
   return (
     <div
-      className={`fixed inset-0 z-[100] bg-[#f5f4ef] text-[#0a0a0a] transition-opacity duration-300 ${
+      className={`fixed inset-0 z-100 bg-[#f5f4ef] text-[#0a0a0a] transition-opacity duration-300 ${
         open ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
       aria-hidden={!open}
@@ -217,7 +224,7 @@ export default function MenuOverlay({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         className="absolute inset-x-0 top-[18vh] flex touch-none justify-center select-none"
-        style={{ perspective: "1600px" }}
+        style={{ perspective: `${PERSPECTIVE}px` }}
       >
         <div
           className="relative cursor-grab active:cursor-grabbing"
@@ -234,7 +241,7 @@ export default function MenuOverlay({
                 tileRefs.current[i] = el;
               }}
               onClick={() => handleTileClick(p.href)}
-              className="group absolute inset-0 overflow-hidden rounded-xl bg-black shadow-[0_40px_100px_-40px_rgba(0,0,0,0.45)] ring-1 ring-black/10"
+              className="group absolute inset-0 overflow-hidden bg-black"
               style={{
                 backfaceVisibility: "hidden",
                 willChange: "transform, opacity",
@@ -247,7 +254,7 @@ export default function MenuOverlay({
                 draggable={false}
                 className="pointer-events-none h-full w-full object-cover"
               />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
               <div className="pointer-events-none absolute inset-x-5 bottom-5 flex items-end justify-between text-white">
                 <p className="font-serif text-3xl leading-none tracking-tight">
                   {p.label}
