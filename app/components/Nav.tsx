@@ -192,7 +192,9 @@ export default function Nav() {
           type="button"
           onClick={() => setOverlayOpen((v) => !v)}
           aria-label={overlayOpen ? "Close menu" : "Open menu"}
-          className={`absolute left-1/2 hidden h-9 -translate-x-1/2 items-center justify-center rounded-md bg-[#0a0a0a] px-4 text-xs font-medium tracking-wide text-white transition-all duration-300 md:flex ${
+          className={`absolute left-1/2 hidden h-9 -translate-x-1/2 items-center justify-center rounded-md px-4 text-xs font-medium tracking-wide transition-all duration-300 md:flex ${
+            bgIsDark ? "bg-white text-black" : "bg-[#0a0a0a] text-white"
+          } ${
             showMenuButton
               ? "scale-100 opacity-100"
               : "pointer-events-none scale-90 opacity-0"

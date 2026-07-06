@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Nav from "./components/Nav";
 import { HeroThemeProvider } from "./components/HeroTheme";
+import SmoothScroll from "./components/SmoothScroll";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <HeroThemeProvider>
+          <SmoothScroll />
           <Nav />
           {children}
         </HeroThemeProvider>
