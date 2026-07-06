@@ -58,6 +58,7 @@ function CircledNumber({ n }: { n: number }) {
 
 export default function Pillars() {
   const sectionRef = useRef<HTMLElement | null>(null);
+  const darkStartRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const sphereRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -110,7 +111,8 @@ export default function Pillars() {
       });
 
       ScrollTrigger.create({
-        trigger: section,
+        trigger: darkStartRef.current,
+        endTrigger: section,
         start: "top 72px",
         end: "bottom 72px",
         onEnter: () => setBgDark(true),
@@ -137,7 +139,25 @@ export default function Pillars() {
       ref={sectionRef}
       className="relative bg-[#0a0a0a] text-[#f5f4ef]"
     >
-      <div className="mx-auto max-w-6xl px-6 py-40 sm:px-10">
+      <div className="relative h-[75vh] w-full" aria-hidden>
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 100% 85% at 50% 0%, #f5f4ef 0%, #f3c9e4 20%, #dd7ec4 38%, #8e2f74 55%, #2b0d24 70%, #0a0a0a 82%)",
+          }}
+        />
+        <div ref={darkStartRef} className="absolute top-1/2" />
+      </div>
+
+      <div className="mx-auto max-w-3xl px-6 text-center sm:px-10">
+        <h2 className="font-serif text-4xl leading-[1.08] tracking-tight sm:text-5xl md:text-6xl">
+          We built the studio around the biggest shifts in how modern brands
+          grow.
+        </h2>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-6 pb-40 sm:px-10">
         <div className="grid gap-10 lg:grid-cols-2">
           <div>
             {pillars.map((p, i) => (
@@ -167,7 +187,7 @@ export default function Pillars() {
           <div ref={trackRef} className="relative hidden lg:block">
             <div
               ref={sphereRef}
-              className="absolute top-0 right-0 w-[420px]"
+              className="absolute top-0 right-0 w-105"
               style={{ willChange: "transform" }}
             >
               <svg
