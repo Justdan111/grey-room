@@ -112,9 +112,9 @@ export default function Pillars() {
 
       ScrollTrigger.create({
         trigger: darkStartRef.current,
-        endTrigger: section,
+        endTrigger: document.getElementById("dark-zone-end") ?? section,
         start: "top 72px",
-        end: "bottom 72px",
+        end: document.getElementById("dark-zone-end") ? "top 72px" : "bottom 72px",
         onEnter: () => setBgDark(true),
         onLeave: () => setBgDark(false),
         onEnterBack: () => setBgDark(true),
