@@ -79,7 +79,7 @@ export default function Pillars() {
         y: () => track.offsetHeight - sphere.offsetHeight,
         ease: "none",
         scrollTrigger: {
-          trigger: section,
+          trigger: track,
           start: "top center",
           end: "bottom center",
           scrub: 1,
@@ -92,7 +92,7 @@ export default function Pillars() {
         ease: "none",
         transformOrigin: "50% 50%",
         scrollTrigger: {
-          trigger: section,
+          trigger: track,
           start: "top center",
           end: "bottom center",
           scrub: 1,
@@ -166,7 +166,9 @@ export default function Pillars() {
                 ref={(el) => {
                   itemRefs.current[i] = el;
                 }}
-                className="flex min-h-[65vh] max-w-md flex-col justify-center"
+                className={`flex min-h-[65vh] max-w-md flex-col justify-center transition-opacity duration-700 ${
+                  i === active ? "opacity-100" : "opacity-25"
+                }`}
               >
                 <CircledNumber n={i + 1} />
                 <h3 className="mt-5 font-serif text-3xl tracking-tight sm:text-4xl">
