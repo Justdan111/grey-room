@@ -171,9 +171,9 @@ export default function Nav() {
             services
             <Caret open={openMenu === "services"} />
           </button>
-          <a href="#cases" className={`transition-colors ${hoverCls}`}>
+          <Link href="/case-studies" className={`transition-colors ${hoverCls}`}>
             case studies
-          </a>
+          </Link>
           <button
             type="button"
             onMouseEnter={() => open("about")}

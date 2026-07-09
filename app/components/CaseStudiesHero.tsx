@@ -107,7 +107,7 @@ export default function CaseStudiesHero() {
           role="link"
           aria-label={`View the ${active.name} case study`}
         >
-          <div className="relative aspect-[16/11] w-full">
+          <div className="relative aspect-16/11 w-full">
             {caseStudies.map((c, i) => (
               <div
                 key={c.slug}
@@ -122,7 +122,7 @@ export default function CaseStudiesHero() {
                   ref={(el) => {
                     backRefs.current[i] = el;
                   }}
-                  className="absolute top-0 right-0 aspect-[4/3] w-[58%] rotate-[2.5deg] overflow-hidden rounded-2xl shadow-lg will-change-transform"
+                  className="absolute top-0 right-0 aspect-4/3 w-[58%] rotate-[2.5deg] overflow-hidden rounded-2xl shadow-lg will-change-transform"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -135,7 +135,7 @@ export default function CaseStudiesHero() {
                   ref={(el) => {
                     frontRefs.current[i] = el;
                   }}
-                  className="absolute top-[12%] left-0 aspect-[3/2] w-[64%] -rotate-2 overflow-hidden rounded-2xl shadow-2xl will-change-transform"
+                  className="absolute top-[12%] left-0 aspect-3/2 w-[64%] -rotate-2 overflow-hidden rounded-2xl shadow-2xl will-change-transform"
                 >
                   <video
                     src={c.video}
