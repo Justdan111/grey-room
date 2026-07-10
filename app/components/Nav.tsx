@@ -82,7 +82,7 @@ function SidePanel({
   cta: string;
 }) {
   return (
-    <div className="w-[300px] shrink-0 rounded-lg bg-white/[0.04] p-3">
+    <div className="w-75 shrink-0 rounded-lg bg-white/4 p-3">
       <p className="text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase">
         {label}
       </p>
